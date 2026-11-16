@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FRANK · Expansion Engine</title>
+<style>
+:root {
+  --navy: #15153a; --blue: #0b7fd4; --blue-soft: #e3f1fc; --bg: #f2f6fa; --card: #fff;
+  --text: #17172b; --muted: #5d667a; --line: #dbe3ec;
+  --green: #14784c; --green-soft: #e2f4ea; --amber: #94610c; --amber-soft: #fbefd5;
+  --red: #b3352a; --red-soft: #fbe6e3; --grey-soft: #eceff4;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); display: flex; flex-direction: column; }
+button { font: inherit; cursor: pointer; }
+a { color: var(--blue); }
+
+.top { display: flex; align-items: center; gap: 20px; padding: 12px 20px; background: var(--card); border-bottom: 1px solid var(--line); }
+.brand { font-weight: 800; font-size: 22px; letter-spacing: .02em; color: var(--navy); }
+.brand span { color: var(--blue); }
+.title { flex: 1; min-width: 0; }
+.title h1 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+.title h1 em { font-style: normal; color: var(--blue); }
+.title p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+.actions { display: flex; align-items: center; gap: 8px; }
+.primary { background: var(--navy); color: #fff; border: 0; padding: 9px 16px; border-radius: 6px; font-weight: 600; }
+.primary:hover { background: #24245c; }
+.primary:disabled { opacity: .5; cursor: default; }
+.ghost { background: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 6px; color: var(--text); }
+.ghost:hover { border-color: var(--blue); color: var(--blue); }
+
+.pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.pill.green { background: var(--green-soft); color: var(--green); }
+.pill.amber { background: var(--amber-soft); color: var(--amber); }
+.pill.red { background: var(--red-soft); color: var(--red); }
+.pill.grey { background: var(--grey-soft); color: var(--muted); }
+.pill.blue { background: var(--blue-soft); color: #075a99; }
+.pill.navy { background: var(--navy); color: #fff; }
+
+.funnel { display: flex; gap: 6px; padding: 12px 20px; align-items: stretch; }
+.stage { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--line); border-radius: 6px; padding: 8px 10px; transition: border-color .3s, opacity .3s; opacity: .45; }
+.stage.done, .stage.active { opacity: 1; border-top-color: var(--blue); }
+.stage.active { box-shadow: 0 0 0 2px var(--blue-soft); }
+.stage.sim.done { border-top-color: var(--navy); }
+.stage .who { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage.sim .who { color: var(--navy); }
+.stage .n { font-size: 24px; font-weight: 750; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.stage .what { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.divider { display: flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--muted); writing-mode: vertical-rl; transform: rotate(180deg); text-transform: uppercase; padding: 0 2px; }
+
+main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(380px, 40%) 1fr; gap: 12px; padding: 0 20px 16px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 8px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); padding: 0 8px; flex: none; }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; color: var(--muted); font-weight: 600; }
+.tabs button.on { color: var(--navy); border-bottom-color: var(--blue); }
+.body { flex: 1; overflow: auto; min-height: 0; }
+.empty { padding: 60px 30px; color: var(--muted); text-align: center; }
+
+table { width: 100%; border-collapse: collapse; }
+th { position: sticky; top: 0; background: #f8fafc; text-align: left; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 7px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 7px 10px; border-bottom: 1px solid #edf1f5; vertical-align: middle; }
+tr.row { cursor: pointer; }
+tr.row:hover { background: #f6faff; }
+tr.row.sel { background: var(--blue-soft); }
+td.score { font-weight: 700; font-variant-numeric: tabular-nums; width: 44px; }
+td .sub { color: var(--muted); font-size: 12px; }
+
+.log { padding: 12px 14px; font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.log div { padding: 4px 0; border-bottom: 1px dashed #e6ebf1; }
+.log b { color: var(--blue); }
+.log .t { color: var(--muted); }
+
+.cards { padding: 14px; display: grid; gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.card h3 { margin: 0 0 6px; font-size: 14px; }
+.card p { margin: 4px 0; }
+.card.key { border-left: 4px solid var(--blue); }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.eco { display: grid; grid-template-columns: 1fr 90px; gap: 6px 10px; align-items: center; margin-top: 8px; }
+.eco input { width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; font: inherit; text-align: right; }
+.eco-out { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.eco-out div { background: #f6f9fc; border-radius: 6px; padding: 8px 10px; }
+.eco-out b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.eco-out .agent { background: var(--blue-soft); }
+
+.dhead { padding: 14px 18px 0; flex: none; }
+.dhead h2 { margin: 0; font-size: 18px; }
+.dhead .meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.dbody { padding: 14px 18px 18px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+h4 { margin: 0 0 6px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+ul.plain { margin: 0; padding: 0; list-style: none; }
+ul.plain li { padding: 5px 0 5px 20px; position: relative; border-bottom: 1px solid #f0f3f7; }
+ul.plain li::before { content: "•"; position: absolute; left: 6px; color: var(--blue); font-weight: 700; }
+ul.checks li::before { content: "✓"; color: var(--green); }
+ul.checks li.bad::before { content: "✕"; color: var(--red); }
+ul.checks .ev { display: block; font-size: 12px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { background: var(--grey-soft); border-radius: 4px; padding: 2px 7px; font-size: 12px; }
+
+.email { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.email .hd { background: #f8fafc; padding: 8px 12px; font-size: 12.5px; border-bottom: 1px solid var(--line); }
+.email .hd b { display: inline-block; width: 58px; color: var(--muted); font-weight: 500; }
+.email .bd { padding: 12px; white-space: pre-wrap; }
+.email .ft { padding: 8px 12px; font-size: 11.5px; color: var(--muted); border-top: 1px dashed var(--line); }
+
+.simnote { background: var(--amber-soft); color: var(--amber); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; margin-bottom: 12px; }
+.thread { display: flex; flex-direction: column; gap: 10px; }
+.msg { max-width: 82%; padding: 9px 12px; border-radius: 10px; white-space: pre-wrap; }
+.msg .from { display: block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 2px; opacity: .75; }
+.msg.frank { background: #f1f5fa; align-self: flex-start; border-bottom-left-radius: 2px; }
+.msg.prospect { background: var(--navy); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
+.msg .kb { display: block; margin-top: 6px; font-size: 11px; color: var(--muted); }
+.msg.sys { align-self: center; background: none; color: var(--muted); font-size: 12px; padding: 0; text-align: center; max-width: 100%; }
+.block { align-self: stretch; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: #fff; }
+.block h3 { margin: 0 0 8px; font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.block table td, .block table th { padding: 5px 8px; font-size: 13px; }
+.block th { position: static; }
+.steps li { opacity: .35; transition: opacity .3s; }
+.steps li.on { opacity: 1; }
+.steps li.on::before { content: "✓"; color: var(--green); }
+.replybar { position: sticky; bottom: 0; background: linear-gradient(transparent, #fff 18%); padding: 16px 0 0; margin-top: 12px; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.quick button { background: #fff; border: 1px solid var(--blue); color: #075a99; border-radius: 99px; padding: 5px 11px; font-size: 12.5px; }
+.quick button:hover { background: var(--blue-soft); }
+.quick button.go { background: var(--blue); color: #fff; font-weight: 600; }
+.inputrow { display: flex; gap: 6px; }
+.inputrow input { flex: 1; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+.inputrow input:focus { outline: 2px solid var(--blue-soft); border-color: var(--blue); }
+.big { font-size: 22px; font-weight: 750; }
+.row2 { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.row2 input[type=number] { width: 90px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+.success { border-color: var(--green); background: var(--green-soft); }
+.quotefrom { background: #f8fafc; border-left: 3px solid var(--line); padding: 8px 10px; font-size: 13px; white-space: pre-wrap; border-radius: 0 6px 6px 0; }
+
+@media (max-width: 1100px) {
+  .funnel { flex-wrap: wrap; } .stage { flex: 1 1 28%; } .divider { display: none; }
+  main { grid-template-columns: 1fr; overflow: auto; } body { height: auto; } .panel { min-height: 480px; }
+  .cols { grid-template-columns: 1fr; }
+}
+
+/* ---- Question 1 additions ---- */
+.bar { height: 6px; background: var(--grey-soft); border-radius: 3px; overflow: hidden; min-width: 60px; }
+.bar i { display: block; height: 100%; background: var(--blue); }
+.bar i.over { background: var(--amber); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.filters { display: flex; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.filters button { background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+.filters button.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.kpi { background: #f6f9fc; border-radius: 6px; padding: 8px 10px; }
+.kpi b { display: block; font-size: 19px; font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 11.5px; color: var(--muted); }
+.spark { display: flex; align-items: flex-end; gap: 6px; height: 110px; position: relative; padding-top: 6px; border-bottom: 1px solid var(--line); }
+.spark .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.spark .col i { width: 100%; background: var(--blue); border-radius: 3px 3px 0 0; display: block; }
+.spark .col i.over { background: var(--amber); }
+.spark .limit { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--red); }
+.spark .limit span { position: absolute; right: 0; top: -17px; font-size: 11px; color: var(--red); background: #fff; padding-left: 4px; }
+.sparklabels { display: flex; gap: 6px; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.sparklabels span { flex: 1; text-align: center; }
+.feat { display: flex; flex-wrap: wrap; gap: 5px; }
+.feat span { border-radius: 4px; padding: 2px 8px; font-size: 12px; background: var(--green-soft); color: var(--green); }
+.feat span.off { background: var(--grey-soft); color: var(--muted); text-decoration: line-through; }
+.feat span.gap { background: var(--amber-soft); color: var(--amber); text-decoration: none; font-weight: 600; }
+.opp { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.opp.first { border-left: 4px solid var(--blue); }
+.opp .oh { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-weight: 650; }
+.opp ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; }
+.report { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.report .rh { background: var(--navy); color: #fff; padding: 10px 14px; font-weight: 650; }
+.report .rh span { display: block; font-weight: 400; font-size: 12px; opacity: .8; }
+.report .rb { padding: 12px 14px; }
+.report .big3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.report .big3 div { background: var(--blue-soft); border-radius: 6px; padding: 8px 10px; }
+.report .big3 b { display: block; font-size: 20px; }
+.report .big3 span { font-size: 11.5px; color: #075a99; }
+.nextstep { background: var(--amber-soft); border-radius: 6px; padding: 8px 10px; }
+.wa .msg.frank { background: #e7f6e9; }
+.doc { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.doc h3 { margin: 0 0 2px; }
+.doc h4 { margin-top: 14px; }
+.twobar { display: grid; grid-template-columns: 110px 1fr 70px; gap: 6px 10px; align-items: center; font-size: 12.5px; margin-top: 6px; }
+.twobar .b { height: 14px; border-radius: 3px; background: var(--navy); }
+.twobar .b.pot { background: var(--blue); }
+@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">FRANK<span>.</span></div>
+  <div class="title">
+    <h1>Expansion Engine: from <em>signal</em> to <em>signed upgrade</em> on data FRANK already has</h1>
+    <p>Synthetic client base shaped like FRANK's brief (150 paying clients, coded not named). Client responses on the right are a simulation you play live.</p>
+  </div>
+  <div class="actions">
+    <span class="pill amber">synthetic data</span>
+    <button id="skip" class="ghost">Show results</button>
+    <button id="run" class="primary">Run the engine</button>
+  </div>
+</header>
+<section id="funnel" class="funnel"></section>
+<main>
+  <section class="panel left">
+    <nav class="tabs" id="ltabs">
+      <button data-t="clients" class="on">Usage Radar</button>
+      <button data-t="log">Agent log</button>
+      <button data-t="insights">Insights</button>
+    </nav>
+    <div class="body" id="lbody"></div>
+  </section>
+  <section class="panel right">
+    <div id="detail" class="empty">Press <b>Run the engine</b> to score the client base.</div>
+  </section>
+</main>
+<script>
+// Expansion Engine logic in the browser: the same rules as agents/account_agents.py
+// (signal detector, sizer, playbook, router, value report), run on the compact client base.
+// Output is checked to be identical to web/data.json by agents/verify_engine.js.
+function buildData(RAW) {
+  const MONTHS = ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"];
+  const PLANS = { Trial: [39, 100, 0.40], Start: [99, 300, 0.35], Grow: [299, 1500, 0.25], Plus: [499, 3000, 0.20] };
+  const ORDER = ["Trial", "Start", "Grow", "Plus"];
+  const FEATURES = ["Quotes", "Renewals", "Claims", "WhatsApp", "Email", "Documents", "ERP link"];
+  const OFFICE = 400, ERP_MOD = 70, CLAIMS_MOD = 60;
+  const rnd = x => { const f = Math.floor(x); return Math.abs(x - f - 0.5) < 1e-9 ? f + (f % 2) : Math.round(x); }; // round half to even, like Python
+  const n = x => x.toLocaleString("en-US"), eur = x => "€" + n(rnd(x));
+  const pct0 = x => rnd(x * 100) + "%", spct = x => (x >= 0 ? "+" : "") + pct0(x);
+  const mean = a => a.reduce((x, y) => x + y, 0) / a.length, sum = a => a.reduce((x, y) => x + y, 0);
+  const median = a => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const single = f => f.toLowerCase().replace(/s+$/, "");
+
+  const cs = RAW.map(r => {
+    const large = r[0][0] === "L";
+    const feats = Object.fromEntries(FEATURES.map((f, i) => [f, !!(r[large ? 6 : 7] >> i & 1)]));
+    const cap = large ? [r[7], r[8]] : [r[9], r[10]], captured = {};
+    if (cap[0] != null) captured.Renewals = cap[0];
+    if (cap[1] != null) captured.Claims = cap[1];
+    if (large) {
+      const list = r[9].map((o, j) => ({ town: o[0], live: j < r[2], users: o[1], est_steps: o[2] }));
+      const erp = feats["ERP link"], claims = feats.Claims;
+      return { id: r[0], name: "Broker group " + r[0], town: r[1], profile: "large", plan: "Enterprise",
+        price: r[2] * (OFFICE + (erp ? ERP_MOD : 0) + (claims ? CLAIMS_MOD : 0)), limit: null, rate: null, offices: list.length,
+        offices_live: r[2], office_list: list, seats: r[3], active: r[4], steps: r[5], erp, claims, features: feats, last_login: 0, captured };
+    }
+    const [price, limit, rate] = PLANS[r[2]];
+    return { id: r[0], name: "Agency " + r[0], town: r[1], profile: "agency", plan: r[2], price, limit, rate, offices: r[3],
+      seats: r[4], active: r[5], steps: r[6], features: feats, last_login: r[8], captured };
+  });
+  for (const c of cs) {
+    const peers = cs.filter(x => x.plan === c.plan && x !== c);
+    c.peers = Object.fromEntries(FEATURES.map(f => [f, rnd(100 * peers.filter(x => x.features[f]).length / Math.max(1, peers.length))]));
+    c.peer_steps = peers.length ? rnd(median(peers.map(x => x.steps[5]))) : null;
+  }
+
+  function detect(c) {
+    const s = c.steps, opps = [], last2 = mean(s.slice(-2)), first2 = mean(s.slice(0, 2)), trend = last2 / first2 - 1;
+    c.trend = rnd(trend * 100) / 100;
+    if (c.profile === "large") {
+      const N = c.offices, live = c.offices_live, per = OFFICE + (c.erp ? ERP_MOD : 0) + (c.claims ? CLAIMS_MOD : 0);
+      opps.push({ type: "rollout", title: `Roll out to the ${N - live} offices not yet on FRANK`, kind: "revenue", value: (N - live) * per * 12, route: "human",
+        evidence: [`${live} of ${N} offices are live`, `Live offices run ${n(rnd(s[5] / live))} steps a month each`, `Usage in live offices changed ${spct(trend)} in six months`] });
+      if (!c.erp) opps.push({ type: "module", title: "Add the ERP integration", kind: "revenue", value: N * ERP_MOD * 12, route: "human",
+        evidence: ["Has its own ERP, but data is still moved by CSV", "ERP link is the feature large accounts buy next (FRANK brief)"] });
+      if (!c.claims) opps.push({ type: "module", title: "Add claims handling", kind: "revenue", value: N * CLAIMS_MOD * 12, route: "human",
+        evidence: ["Uses quotes and renewals only", "No claims opened through FRANK in six months"] });
+      if (c.active / c.seats < .7) opps.push({ type: "seats", title: `Activate the ${c.seats - c.active} users who are not using FRANK`, kind: "adoption", value: 0, route: "auto",
+        evidence: [`${c.active} of ${c.seats} users active in the last 30 days`] });
+      return opps;
+    }
+    const { price, limit, rate, plan } = c, pct = last2 / limit, over = Math.max(0, last2 - limit) * rate;
+    const churn = trend <= -.3 || c.last_login >= 21;
+    if (churn) opps.push({ type: "churn", title: "Usage is falling: check in before they cancel", kind: "risk", value: price * 12, route: plan === "Plus" ? "human" : "auto",
+      evidence: [`Steps changed ${spct(trend)} in six months`, `Last login ${c.last_login} days ago`, `${c.active} of ${c.seats} users active`] });
+    if (plan === "Trial" && s[5] >= 60 && !churn) {
+      opps.push({ type: "upgrade", to: "Start", title: "Convert from Trial to Start", kind: "revenue", value: (99 - 39) * 12, route: "auto",
+        evidence: [`Used ${s[5]} of 100 trial tasks in November`, "Usage is steady or growing"] });
+    } else if ((plan === "Start" || plan === "Grow") && pct >= .85 && trend > -.05) {
+      const nxt = ORDER[ORDER.indexOf(plan) + 1], np = PLANS[nxt][0], net = (np - price - over) * 12;
+      const ev = [`Average of the last two months: ${n(rnd(last2))} steps, ${pct0(pct)} of the ${n(limit)} included`, `Usage changed ${spct(trend)} in six months`];
+      if (over) ev.push(`Paying about ${eur(over)} a month in extra steps`);
+      if (net > 0) opps.push({ type: "upgrade", to: nxt, title: `Upgrade from ${plan} to ${nxt}`, kind: "revenue", value: rnd(net), route: "auto", evidence: ev, over: rnd(over) });
+      else opps.push({ type: "fairprice", to: nxt, title: `Move to ${nxt}: the client would pay less`, kind: "adoption", value: 0, route: "auto",
+        evidence: [...ev, `${nxt} would cost them ${eur(-net / 12)} less a month: offer it before they notice`], over: rnd(over) });
+    } else if (plan === "Plus" && pct >= .85 && trend > -.05) {
+      opps.push({ type: "custom", title: "Outgrowing Plus: offer a custom plan", kind: "revenue", value: rnd(price * 12 * .25), route: "human",
+        evidence: [`${pct0(pct)} of the Plus limit used`, "Value is an estimate: 25% uplift on current billing"] });
+    }
+    if (!churn && plan !== "Trial") {
+      for (const [f, share] of [["Renewals", .4], ["WhatsApp", .2], ["Claims", .25]]) {
+        if (c.features[f]) continue;
+        const added = s[5] * share, extra = Math.max(0, s[5] + added - limit) * rate * 12;
+        opps.push({ type: "feature", feature: f, title: `Turn on ${f}`, kind: extra > 50 ? "revenue" : "adoption", value: extra > 50 ? rnd(extra) : 0, route: "auto",
+          evidence: [f in c.captured ? `FRANK captured ${c.captured[f]} ${single(f)} requests in the inbox in November; the team did them by hand` : "Clients write by WhatsApp, but the channel is not connected",
+            `${c.peers[f]}% of agencies on ${plan} run ${f} through FRANK. This one runs zero`, `Agencies that add ${f} run about ${pct0(share)} more steps (assumption)`,
+            extra <= 50 ? "Brings the next plan upgrade forward" : `Would take them over the ${n(limit)} included steps`] });
+        break;
+      }
+      if (c.seats >= 2 && c.active / c.seats < .5) opps.push({ type: "seats", title: `Activate the ${c.seats - c.active} colleagues who are not using FRANK`, kind: "adoption", value: 0, route: "auto",
+        evidence: [`${c.active} of ${c.seats} users active in the last 30 days`] });
+    }
+    return opps;
+  }
+
+  function message(c, o) {
+    const s = c.steps, t = o.type, W = "WhatsApp to the owner";
+    if (t === "upgrade" && c.plan === "Trial") return { channel: W, text: `Hello from FRANK. You used ${s[5]} of your 100 trial tasks in November, so the trial is nearly used up. Start gives you 300 steps a month for €99, with no long-term contract. Switch with one tap and nothing is interrupted.`, buttons: ["Switch to Start", "Show me the numbers", "Not now"] };
+    if (t === "upgrade" || t === "fairprice") {
+      const [np, nl] = PLANS[o.to], over = o.over ? ` Last month you paid about ${eur(o.over)} for extra steps.` : "";
+      const tail = t === "fairprice" ? `On ${o.to} your bill would be lower than it is today.` : `${o.to} includes ${n(nl)} steps for €${np} a month, so you have room for ${(rnd(nl / s[5] * 10) / 10).toFixed(1)}x today's volume.`;
+      return { channel: W, text: `Hello from FRANK. Your team ran ${n(s[4])} steps in October and ${n(s[5])} in November. ${c.plan} includes ${n(c.limit)}.${over} ${tail} Switch from 1 December? One tap, and I send the contract amendment for e-signature.`, buttons: [`Switch to ${o.to}`, "Show me the numbers", "Not now"] };
+    }
+    if (t === "feature") {
+      const f = o.feature, how = { Renewals: "FRANK can prepare each renewal 30 days ahead: it collects the details, checks the market and hands you a comparison to approve.",
+        WhatsApp: "Your clients can send requests by WhatsApp and FRANK picks them up, the same way it does with email.",
+        Claims: "FRANK can open the claim with the insurer, chase the documents and keep your client informed until it closes." }[f];
+      const seen = f in c.captured ? `I saw ${c.captured[f]} ${single(f)} requests in your inbox in November, and your team did them by hand. ` : "Your clients write to you on WhatsApp, but I only see your email. ";
+      return { channel: W, trial: true, text: `Hello from FRANK. ${seen}${c.peers[f]}% of agencies your size run ${f} through FRANK. ${how} Try it free for 14 days with one tap. After that it stays on and its steps count towards your plan, unless you tell me to stop. I will remind you on day 12.`, buttons: [`Start 14-day trial of ${f}`, "Show me how it works", "Not now"] };
+    }
+    if (t === "seats") return { channel: W, text: `Hello from FRANK. ${c.active} of your ${c.seats} colleagues used FRANK in the last 30 days. Shall I send the others a five-minute start guide with three tasks to try?`, buttons: ["Send the guide", "Not now"] };
+    if (t === "churn") return { channel: W, text: `Hello from FRANK. Your team ran ${n(s[5])} steps in November, down from ${n(s[0])} in June. Is something not working for you? Tell me what got in the way, or pick a time and a person from our team will call you.`, buttons: ["Book a call", "It is fine, just a quiet month", "I want to cancel"] };
+    return null;
+  }
+
+  function accountPlan(c, opps) {
+    const nxt = c.office_list.filter(o => !o.live).sort((a, b) => b.est_steps - a.est_steps).slice(0, 3), pl = c.offices_live > 1 ? "s" : "";
+    return {
+      situation: [`${c.offices_live} of ${c.offices} offices live, ${c.active} active users of ${c.seats} licensed`, `${n(c.steps[5])} steps in November (${spct(c.trend)} in six months)`,
+        `Billing today: ${eur(c.price * 12)} a year. Modules: quotes and renewals` + (c.erp ? ", ERP link" : "") + (c.claims ? ", claims" : "")],
+      opportunities: opps.filter(o => o.kind === "revenue").map(o => ({ title: o.title, value: o.value })),
+      sequence: nxt.map(o => `${o.town} office: ${o.users} users, about ${n(o.est_steps)} steps a month expected`),
+      stakeholders: ["Managing partner (sponsor): the business case", "Operations director: rollout order and training",
+        c.erp ? "IT lead: already integrated, confirm capacity" : "IT lead: ERP integration", c.claims ? "Office managers of the next three offices" : "Claims manager: claims pilot"],
+      email: `Subject: Results from your ${c.offices_live} live office${pl} and a proposal for the next three\n\nYour ${c.offices_live} live office${pl} ran ${n(c.steps[5])} steps through FRANK in November, ${spct(c.trend)} against June. Based on those numbers I have prepared a rollout plan for ${nxt.map(o => o.town).join(", ")}, the three offices with the highest expected volume, and a business case for the whole group.\n\nCould we take 30 minutes next week to go through it? I have attached the one-page plan.`,
+    };
+  }
+
+  const rank = { revenue: 0, risk: 1, adoption: 2 };
+  for (const c of cs) {
+    const opps = detect(c);
+    for (const o of opps) o.message = message(c, o);
+    opps.sort((a, b) => rank[a.kind] - rank[b.kind] || b.value - a.value);
+    if (opps.some(o => o.kind === "risk")) opps.sort((a, b) => (a.kind !== "risk") - (b.kind !== "risk"));
+    c.opps = opps;
+    c.route = c.profile === "large" || (opps[0] && opps[0].route === "human") ? "human" : "auto";
+    c.potential = rnd(sum(opps.filter(o => o.kind === "revenue").map(o => o.value)));
+    c.at_risk = sum(opps.filter(o => o.kind === "risk").map(o => o.value));
+    c.billed = rnd(c.price * 12 + (c.limit ? Math.max(0, c.steps[5] - c.limit) * c.rate * 12 : 0));
+    if (c.profile === "large") c.plan_doc = accountPlan(c, opps);
+    const hours = rnd(c.active * 10 * 4.3 * (c.limit ? Math.min(1, c.steps[5] / c.limit) : .8));
+    c.report = { hours, value: hours * 15, price: rnd(c.billed / 12), steps: c.steps[5], next: opps[0] ? opps[0].title : "Nothing to change: you are getting full value from your plan" };
+    const used = FEATURES.filter(f => c.features[f]).length;
+    c.health = Math.max(5, Math.min(100, 100 - (c.at_risk ? 35 : 0) - rnd((1 - c.active / c.seats) * 25) - (7 - used) * 3 - Math.min(15, Math.floor(c.last_login / 2))));
+  }
+  cs.sort((a, b) => (b.potential + b.at_risk) - (a.potential + a.at_risk) || (a.id < b.id ? -1 : 1));
+  const all = cs.flatMap(c => c.opps), ag = cs.filter(c => c.profile === "agency"), lg = cs.filter(c => c.profile === "large"), tot = (a, k) => sum(a.map(c => c[k]));
+  const labels = { upgrade: "Plan upgrade", fairprice: "Fair-price move", feature: "Feature activation", seats: "User activation", churn: "Churn save", rollout: "Office rollout", module: "Module add-on", custom: "Custom plan" };
+  const stats = { clients: cs.length, agencies: ag.length, large: lg.length, steps_month: sum(cs.map(c => c.steps[5])), signals: all.length, clients_with_signal: cs.filter(c => c.opps.length).length,
+    potential: tot(cs, "potential"), at_risk: tot(cs, "at_risk"), billed: tot(cs, "billed"), billed_agency: tot(ag, "billed"), potential_agency: tot(ag, "potential"),
+    billed_large: tot(lg, "billed"), potential_large: tot(lg, "potential"), plays: all.filter(o => o.message).length + lg.length, reports: cs.length,
+    captured: sum(cs.map(c => sum(Object.values(c.captured)))), hours: sum(cs.map(c => c.report.hours)),
+    auto_clients: cs.filter(c => c.route === "auto" && c.opps.length).length, human_clients: cs.filter(c => c.route === "human" && c.opps.length).length, by_type: {} };
+  for (const o of all) { const b = stats.by_type[labels[o.type]] ??= { n: 0, value: 0, kind: o.kind, auto: 0, human: 0 }; b.n++; b.value += o.value; b[o.route]++; }
+  return { months: MONTHS, plans: PLANS, features: FEATURES, labels, stats, clients: cs };
+}
+if (typeof module !== "undefined") module.exports = buildData;
+
+window.EMBED = {data: buildData([["A-001","Faro","Start",1,3,2,[239,253,251,255,246,249],17,0,42,24],["A-002","Leiria","Start",2,2,1,[160,165,170,179,161,162],17,3,22,17],["A-003","Évora","Start",1,2,1,[277,246,209,181,159,140],33,33,15,10],["A-004","Santarém","Start",1,3,3,[71,76,75,73,77,75],59,4,null,6],["A-005","Leiria","Start",2,2,1,[220,230,239,239,236,242],11,2,null,21],["A-006","Lisboa","Start",1,3,2,[107,114,114,117,105,105],19,4,null,11],["A-007","Aveiro","Plus",1,10,9,[2606,2543,2367,2463,2514,2599],51,3,null,240],["A-008","Lisboa","Start",1,2,1,[291,281,266,292,267,292],1,1,28,31],["A-009","Setúbal","Grow",1,3,2,[1244,1343,1362,1293,1300,1243],21,4,162,null],["A-010","Setúbal","Start",1,2,1,[11,12,12,13,14,15],19,2,null,1],["A-011","Viana do Castelo","Start",1,2,2,[51,59,63,68,76,88],17,4,14,8],["A-012","Guimarães","Start",1,3,3,[70,73,75,69,71,75],95,2,null,null],["A-013","Coimbra","Grow",1,6,5,[526,592,743,793,928,994],17,3,161,85],["A-014","Lisboa","Plus",1,8,4,[2040,2048,1961,1873,1965,1908],61,2,217,null],["A-015","Lisboa","Start",2,3,3,[93,113,118,131,150,164],51,0,null,13],["A-016","Viana do Castelo","Start",3,3,2,[237,217,232,236,216,241],59,1,null,20],["A-017","Lisboa","Trial",1,2,1,[79,75,80,79,72,81],27,2,null,6],["A-018","Faro","Start",1,2,1,[153,176,191,220,237,277],59,2,null,24],["A-019","Viseu","Start",1,3,2,[56,52,54,52,52,53],17,2,6,4],["A-020","Leiria","Grow",1,6,5,[229,270,286,299,344,377],23,1,null,null],["A-021","Funchal","Start",1,3,2,[297,288,309,304,317,318],51,2,null,20],["A-022","Aveiro","Start",1,2,2,[205,218,219,220,230,222],27,3,null,13],["A-023","Funchal","Start",2,3,2,[230,244,266,294,318,353],19,3,null,30],["A-024","Aveiro","Start",1,3,2,[49,46,48,45,45,49],27,0,null,5],["A-025","Guimarães","Grow",1,5,4,[88,84,82,88,89,83],17,4,10,9],["A-026","Viana do Castelo","Start",1,3,2,[95,102,98,99,103,95],27,4,null,8],["A-027","Évora","Start",1,2,1,[214,220,225,253,274,311],25,2,45,23],["A-028","Leiria","Start",2,2,1,[176,199,215,231,241,270],37,3,45,null],["A-029","Porto","Start",2,3,2,[140,139,144,138,153,145],29,4,18,null],["A-030","Funchal","Start",1,2,1,[56,62,68,72,84,87],81,4,14,6],["A-031","Braga","Start",1,2,1,[255,238,188,172,139,122],5,30,21,null],["A-032","Braga","Start",1,2,1,[291,263,283,286,288,279],25,0,41,19],["A-033","Faro","Start",1,2,1,[132,141,144,151,159,182],51,3,null,17],["A-034","Braga","Grow",1,3,3,[952,899,859,946,906,918],17,1,97,71],["A-035","Santarém","Start",1,3,1,[386,362,305,246,208,182],59,12,null,14],["A-036","Lisboa","Grow",1,4,4,[1297,1229,1335,1208,1216,1311],9,2,157,100],["A-037","Leiria","Start",1,2,1,[183,165,135,109,97,87],41,1,9,7],["A-038","Leiria","Grow",1,3,2,[1432,1447,1290,1360,1408,1348],31,3,null,null],["A-039","Viseu","Trial",1,2,1,[13,14,18,18,21,24],27,2,null,2],["A-040","Évora","Start",1,2,2,[23,26,28,32,35,38],1,1,6,3],["A-041","Lisboa","Grow",1,4,4,[947,1029,1055,1123,1348,1404],25,4,211,112],["A-042","Funchal","Grow",1,5,5,[541,658,745,767,878,946],41,3,162,97],["A-043","Braga","Start",1,3,2,[112,129,142,161,183,195],17,0,29,20],["A-044","Évora","Grow",1,5,3,[495,491,541,583,628,635],57,4,106,67],["A-045","Porto","Plus",2,6,5,[2274,2482,2689,2736,3290,3477],57,2,439,306],["A-046","Vila Real","Start",2,3,2,[268,273,270,260,253,271],55,2,null,null],["A-047","Ponta Delgada","Grow",1,3,2,[269,261,254,252,269,243],81,1,24,19],["A-048","Ponta Delgada","Start",1,2,1,[248,247,256,268,270,240],57,4,29,21],["A-049","Aveiro","Start",1,3,2,[209,207,218,213,205,206],3,2,null,12],["A-050","Setúbal","Start",1,2,2,[244,236,245,231,250,231],91,4,null,22],["A-051","Faro","Grow",1,4,2,[837,867,812,813,899,886],61,1,88,null],["A-052","Viana do Castelo","Start",2,3,3,[235,263,264,288,311,373],19,2,null,30],["A-053","Ponta Delgada","Grow",1,3,1,[1433,1163,880,753,603,535],51,3,null,44],["A-054","Lisboa","Grow",3,4,3,[966,1031,971,1020,1072,971],9,2,156,87],["A-055","Viseu","Grow",1,3,3,[458,481,516,556,591,695],29,4,73,null],["A-056","Guimarães","Start",1,2,2,[126,144,159,189,212,230],31,3,null,null],["A-057","Faro","Start",2,2,1,[198,158,132,113,90,79],57,0,12,6],["A-058","Porto","Start",1,2,2,[226,219,208,219,226,211],19,1,null,19],["A-059","Viana do Castelo","Grow",1,3,2,[1144,1175,1135,1101,1177,1185],9,4,150,126],["A-060","Guimarães","Grow",1,4,2,[532,492,419,353,329,285],49,25,37,20],["A-061","Ponta Delgada","Start",1,2,1,[149,162,170,169,177,193],57,2,23,20],["A-062","Santarém","Start",1,3,2,[172,181,175,175,180,182],51,2,null,14],["A-063","Santarém","Grow",2,6,3,[1063,1146,1197,1387,1514,1470],23,1,null,null],["A-064","Guimarães","Start",2,2,2,[211,219,211,201,218,198],55,4,null,null],["A-065","Coimbra","Start",1,2,1,[129,130,128,134,132,140],25,4,16,12],["A-066","Lisboa","Start",1,3,2,[246,246,235,233,230,240],21,3,35,null],["A-067","Viana do Castelo","Trial",1,1,1,[21,23,25,29,30,33],27,0,null,3],["A-068","Ponta Delgada","Start",2,3,2,[78,86,104,110,130,134],3,4,null,8],["A-069","Vila Real","Start",1,3,2,[209,213,261,281,302,309],83,3,null,23],["A-070","Ponta Delgada","Start",1,3,2,[173,187,178,186,171,175],31,4,null,null],["A-071","Funchal","Start",1,3,2,[43,45,48,52,58,59],51,4,null,6],["A-072","Braga","Start",1,3,3,[201,219,262,272,313,376],49,0,50,35],["A-073","Leiria","Start",3,3,2,[199,170,144,135,107,91],21,37,13,null],["A-074","Setúbal","Start",1,3,3,[102,107,104,98,98,107],63,1,null,null],["A-075","Setúbal","Grow",1,5,3,[827,914,884,823,910,826],19,4,null,52],["A-076","Braga","Grow",1,5,3,[676,618,543,436,387,344],57,0,33,23],["A-077","Aveiro","Grow",1,6,4,[620,679,686,613,613,676],17,4,80,46],["A-078","Funchal","Start",1,2,1,[347,338,339,349,339,368],27,1,null,27],["A-079","Braga","Start",1,2,2,[162,187,187,201,231,251],53,3,26,null],["A-080","Porto","Start",1,3,1,[163,148,145,132,118,100],33,1,10,8],["A-081","Porto","Start",1,3,2,[222,230,220,230,215,211],25,1,32,14],["A-082","Lisboa","Start",1,3,2,[229,262,303,338,331,382],17,3,39,36],["A-083","Funchal","Start",3,3,2,[88,86,84,85,89,87],17,2,9,6],["A-084","Vila Real","Start",1,3,2,[216,236,263,298,300,334],17,0,44,24],["A-085","Funchal","Start",3,2,2,[42,49,51,57,67,70],17,2,11,6],["A-086","Coimbra","Grow",1,6,4,[785,800,753,794,789,798],21,0,108,null],["A-087","Coimbra","Start",1,2,1,[228,242,243,250,233,250],27,0,null,19],["A-088","Guimarães","Start",1,2,1,[109,114,120,131,139,155],25,0,15,15],["A-089","Funchal","Start",1,3,3,[87,103,110,106,114,131],19,4,null,10],["A-090","Viseu","Trial",1,2,1,[38,41,41,49,51,52],23,4,null,null],["A-091","Setúbal","Start",1,3,1,[418,332,286,233,191,178],17,0,28,11],["A-092","Évora","Start",1,2,2,[202,211,194,204,213,200],17,4,26,17],["A-093","Lisboa","Plus",1,10,9,[2390,2389,2679,2888,3114,3239],27,3,null,214],["A-094","Lisboa","Start",1,3,2,[163,161,163,166,156,163],123,3,null,10],["A-095","Ponta Delgada","Start",1,2,1,[135,148,169,198,216,243],19,2,null,26],["A-096","Leiria","Start",2,3,2,[120,142,162,185,205,230],49,4,39,25],["A-097","Aveiro","Start",1,2,1,[86,83,68,59,53,45],61,2,6,null],["A-098","Santarém","Start",1,2,1,[18,19,21,23,26,29],19,1,null,3],["A-099","Leiria","Start",1,3,2,[87,96,116,126,150,151],35,0,null,13],["A-100","Funchal","Start",3,2,2,[52,59,62,66,73,79],49,4,10,5],["A-101","Aveiro","Start",1,2,1,[190,178,190,186,180,185],17,3,27,15],["A-102","Funchal","Trial",1,1,1,[37,35,35,39,36,36],9,1,5,2],["A-103","Porto","Plus",1,8,3,[2773,2321,2045,1866,1507,1250],81,31,146,80],["A-104","Viana do Castelo","Start",1,2,2,[39,41,43,49,52,55],37,3,8,null],["A-105","Porto","Plus",1,10,6,[2000,2326,2479,2666,2952,2988],19,2,null,246],["A-106","Setúbal","Trial",1,2,2,[26,29,29,32,36,40],29,4,5,null],["A-107","Setúbal","Trial",1,1,1,[52,54,50,54,55,51],9,4,8,4],["A-108","Ponta Delgada","Trial",3,1,1,[49,53,54,50,51,49],19,2,null,4],["A-109","Lisboa","Start",1,3,2,[153,140,131,115,104,91],25,2,11,5],["A-110","Santarém","Grow",1,6,4,[862,933,1037,1216,1236,1328],19,1,null,81],["A-111","Braga","Trial",1,1,1,[13,13,12,12,13,13],25,2,1,1],["A-112","Évora","Start",1,3,2,[192,208,214,234,261,284],17,3,46,24],["A-113","Viana do Castelo","Start",1,3,2,[175,196,206,224,258,278],55,1,null,null],["A-114","Setúbal","Grow",2,5,4,[1207,1241,1221,1240,1222,1151],91,3,null,121],["A-115","Porto","Start",1,3,2,[194,212,227,228,253,282],25,1,38,26],["A-116","Viana do Castelo","Start",2,3,3,[102,101,97,102,101,102],17,2,10,8],["A-117","Aveiro","Start",1,2,1,[61,69,69,75,81,90],29,4,13,null],["A-118","Vila Real","Start",2,2,2,[257,248,242,260,233,255],59,3,null,20],["A-119","Guimarães","Start",1,3,2,[100,93,100,102,93,95],31,3,null,null],["A-120","Leiria","Start",3,2,1,[262,279,270,263,274,287],5,0,42,null],["A-121","Setúbal","Trial",1,2,1,[32,38,40,45,49,53],25,0,6,5],["A-122","Coimbra","Start",1,3,3,[76,84,90,98,105,116],27,4,null,8],["A-123","Coimbra","Start",2,3,2,[119,127,129,128,120,117],49,3,16,9],["A-124","Coimbra","Grow",1,5,3,[300,306,295,322,327,315],49,1,43,19],["A-125","Setúbal","Grow",1,4,3,[1040,1062,1179,1359,1443,1592],101,4,179,null],["A-126","Braga","Start",2,2,2,[253,257,264,243,259,262],1,1,39,17],["A-127","Viseu","Start",2,3,2,[223,211,229,225,226,212],23,2,null,null],["A-128","Aveiro","Start",2,2,2,[318,311,324,310,319,316],19,1,null,26],["A-129","Viana do Castelo","Start",1,3,1,[36,35,35,36,36,37],31,2,null,null],["A-130","Aveiro","Grow",2,4,2,[988,979,1058,949,995,1041],27,0,null,112],["A-131","Lisboa","Start",2,3,2,[63,72,77,86,94,110],17,0,16,10],["A-132","Évora","Plus",1,10,4,[2872,2676,2075,1774,1690,1411],49,27,219,151],["A-133","Funchal","Grow",1,4,2,[150,169,182,191,206,230],27,1,null,18],["A-134","Ponta Delgada","Grow",1,5,5,[124,136,145,153,164,191],91,3,null,15],["A-135","Ponta Delgada","Start",1,2,1,[130,131,123,132,120,129],35,4,null,12],["A-136","Évora","Start",1,2,1,[39,47,50,56,57,64],17,1,6,5],["A-137","Évora","Grow",1,5,2,[392,415,484,504,586,620],57,3,71,53],["A-138","Coimbra","Plus",2,6,5,[1433,1453,1554,1509,1520,1517],25,0,230,154],["A-139","Faro","Grow",1,6,4,[992,1180,1214,1347,1432,1497],59,1,null,125],["A-140","Setúbal","Grow",1,3,3,[1368,1356,1511,1537,1627,1808],31,0,null,null],["L-01","Guimarães",2,30,26,[2404,2419,2718,2772,2971,3149],115,null,293,[["Guimarães",14,1378],["Viana do Castelo",16,1704],["Braga",16,2340],["Ponta Delgada",16,1172],["Coimbra",18,1451],["Funchal",16,2231],["Lisboa",17,1583],["Vila Real",12,1352],["Aveiro",17,2000],["Évora",12,1317]]],["L-02","Vila Real",1,17,10,[1203,1208,1395,1549,1580,1782],55,null,null,[["Vila Real",17,1713],["Viseu",17,1651],["Évora",16,1527],["Braga",12,1731],["Faro",13,1985],["Setúbal",15,2572],["Santarém",16,1479],["Funchal",13,1399],["Coimbra",16,2114],["Guimarães",16,1793],["Aveiro",17,1421],["Lisboa",14,1998]]],["L-03","Porto",1,8,5,[803,893,1010,1165,1277,1384],19,null,86,[["Porto",8,1414],["Leiria",10,2558],["Viseu",10,1448],["Ponta Delgada",17,2158],["Viana do Castelo",11,1698],["Braga",9,2433],["Santarém",15,1112],["Setúbal",16,1509],["Aveiro",15,1258],["Funchal",18,2041],["Vila Real",10,1828]]],["L-04","Viseu",1,15,10,[1665,1592,1595,1550,1666,1552],59,null,142,[["Viseu",15,1572],["Vila Real",14,1816],["Aveiro",17,1653],["Faro",15,2369],["Santarém",18,2069],["Braga",18,1462],["Ponta Delgada",11,2368],["Coimbra",18,2219],["Setúbal",13,1838]]],["L-05","Leiria",1,15,10,[864,940,995,1071,1248,1313],127,null,null,[["Leiria",15,1315],["Porto",15,1140],["Aveiro",10,1769],["Santarém",8,2501],["Lisboa",8,1901],["Setúbal",13,2070],["Ponta Delgada",15,2363],["Faro",18,2593],["Évora",11,2309],["Vila Real",9,1169],["Guimarães",18,2326]]],["L-06","Coimbra",1,11,9,[2153,2195,2230,2216,2078,2215],123,null,232,[["Coimbra",11,2143],["Vila Real",18,1463],["Lisboa",12,1273],["Ponta Delgada",18,1310],["Évora",8,1324],["Faro",9,1189],["Viana do Castelo",16,1160],["Aveiro",11,1639],["Santarém",17,2014],["Viseu",13,1401],["Leiria",15,2491]]],["L-07","Lisboa",1,9,6,[1939,1934,1899,1979,1927,1953],55,null,null,[["Lisboa",9,1929],["Aveiro",18,1767],["Leiria",14,1749],["Ponta Delgada",9,2175],["Funchal",13,1901],["Viseu",11,1825],["Faro",8,2086],["Vila Real",12,2148],["Guimarães",10,2038],["Coimbra",17,1619],["Braga",14,1136]]],["L-08","Coimbra",1,8,5,[1438,1538,1706,1830,1953,2105],55,null,null,[["Coimbra",8,2115],["Leiria",18,1449],["Vila Real",8,2222],["Braga",15,1238],["Ponta Delgada",15,1577],["Lisboa",8,2133],["Guimarães",11,2054],["Setúbal",16,1135],["Faro",17,2336],["Évora",10,2175],["Aveiro",16,1478]]],["L-09","Viseu",3,47,33,[5441,5659,5461,5346,5521,5416],59,null,483,[["Viseu",16,1993],["Évora",17,1823],["Porto",14,1590],["Viana do Castelo",10,1721],["Funchal",8,1383],["Faro",13,2057],["Coimbra",13,2137],["Braga",15,1236]]],["L-10","Ponta Delgada",1,9,6,[737,772,875,954,1136,1270],51,null,105,[["Ponta Delgada",9,1257],["Faro",18,1672],["Lisboa",8,2440],["Guimarães",10,1240],["Santarém",12,1811],["Funchal",18,2479],["Viseu",16,2368],["Setúbal",10,2133],["Braga",9,1875]]]])};
+</script>
+<script>
+// FRANK Expansion Engine demo (Question 1). data.json is produced by agents/account_agents.py
+// from a synthetic client base; all detection, sizing and message drafting happens there.
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = n => Math.round(Number(n)).toLocaleString("en-GB");
+const eur = n => "€" + fmt(n);
+const keur = n => n >= 10000 ? "€" + Math.round(n / 1000) + "k" : eur(n);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+let D, S;
+let ran = false, running = false, ltab = "clients", dtab = "radar", sel = null, filter = "all";
+let logLines = [];
+const play = {};   // per-client simulated play state
+const shown = {};
+
+const STAGES = [
+  { k: "clients", who: "Usage Radar", v: () => fmt(shown.clients), what: () => "accounts scored this week" },
+  { k: "signals", who: "Signals", v: () => fmt(shown.signals), what: () => `signals in ${S.clients_with_signal} accounts · ${fmt(S.captured)} requests seen but done by hand` },
+  { k: "potential", who: "Sizer", v: () => keur(shown.potential), what: () => `expansion potential a year · ${keur(S.at_risk)} at risk` },
+  { k: "reports", who: "Value reports", v: () => fmt(shown.reports), what: () => "monthly reports drafted, one next step each" },
+  { k: "auto_clients", who: "Router", v: () => fmt(shown.auto_clients), what: () => `zero-touch plays · ${S.human_clients} prepared for a person` },
+  { k: "answered", who: "Nudges", sim: true, v: () => fmt(live().answered), what: () => "client answers" },
+  { k: "trials", who: "Trials", sim: true, v: () => fmt(live().trials), what: () => `14-day trials started${live().wins ? ` · adoption wins: ${live().wins}` : ""}` },
+  { k: "signed", who: "Signed", sim: true, v: () => keur(live().signed), what: () => `a year, zero-touch${live().pipeline ? ` · ${keur(live().pipeline)} sent by the lead` : ""}` },
+];
+
+function live() {
+  const ps = Object.values(play);
+  return {
+    answered: ps.filter(p => p.answered).length, trials: ps.filter(p => p.trial).length,
+    wins: ps.filter(p => p.win).length, signed: ps.reduce((a, p) => a + (p.signed || 0), 0),
+    pipeline: ps.reduce((a, p) => a + (p.pipeline || 0), 0),
+  };
+}
+
+// ---------- funnel + run ----------
+function renderFunnel(active) {
+  $("#funnel").innerHTML = STAGES.map((s, i) => {
+    const done = s.sim ? ran : shown[s.k] != null;
+    return (i === 5 ? `<div class="divider">simulated live</div>` : "") +
+      `<div class="stage ${s.sim ? "sim" : ""} ${done ? "done" : ""} ${active === s.k ? "active" : ""}">
+        <div class="who">${i + 1} · ${s.who}</div><div class="n">${done ? s.v() : "–"}</div>
+        <div class="what">${done ? esc(s.what()) : "&nbsp;"}</div></div>`;
+  }).join("");
+}
+
+async function countTo(k, target, ms = 700) {
+  const t0 = performance.now();
+  for (;;) {
+    const f = Math.min(1, (performance.now() - t0) / ms);
+    shown[k] = Math.round(target * (1 - Math.pow(1 - f, 3))); renderFunnel(k);
+    if (f >= 1) break; await sleep(30);
+  }
+}
+
+function log(who, text) { logLines.push({ who, text, t: new Date().toLocaleTimeString("en-GB") }); if (ltab === "log") renderLeft(); }
+
+async function runEngine() {
+  if (running) return;
+  running = true; ran = false; logLines = []; sel = null;
+  for (const k in shown) delete shown[k];
+  for (const k in play) delete play[k];
+  $("#run").disabled = true; ltab = "log"; renderTabs(); renderLeft(); renderFunnel();
+  $("#detail").className = "empty"; $("#detail").style.cssText = ""; $("#detail").innerHTML = "The engine is working…";
+  const t = S.by_type, n = k => t[k] ? t[k].n : 0;
+  const script = [
+    ["clients", S.clients, "Usage Radar", `Read six months of usage for ${S.clients} paying clients: steps, active users, features, offices, last login. ${fmt(S.steps_month)} steps ran in November.`],
+    [null, 0, "Usage Radar", `Counted ${fmt(S.captured)} renewal and claim requests that FRANK saw in client inboxes last month but did not execute, because the flow is switched off. That is unserved demand.`],
+    ["signals", S.signals, "Signal detector", `Compared each client with agencies on the same plan. ${S.signals} signals in ${S.clients_with_signal} accounts: ${n("Feature activation")} unused flows, ${n("Plan upgrade")} plan limits reached, ${n("Office rollout")} office rollouts, ${n("Module add-on")} module gaps, ${n("Churn save")} at risk of leaving.`],
+    ["potential", S.potential, "Sizer", `Put a yearly value on each signal: ${eur(S.potential)} of expansion potential against ${eur(S.billed)} billed today. ${eur(S.at_risk)} of billing is at risk.`],
+    ["reports", S.reports, "Value report agent", `Drafted ${S.reports} monthly value reports for agency owners: hours saved, euro value and one next step. ${fmt(S.hours)} hours of admin saved across the base in November (estimate).`],
+    ["auto_clients", S.auto_clients, "Router", `${S.auto_clients} accounts get a zero-touch play: a nudge with a one-tap trial or upgrade. ${S.human_clients} accounts get a prepared plan for a person: all ${S.large} large brokers and the highest-value exceptions.`],
+    [null, 0, "Orchestrator", "Nudges ready to send. People at FRANK involved so far: 0."],
+  ];
+  for (const [k, v, who, text] of script) { log(who, text); if (k) await countTo(k, v); else await sleep(650); await sleep(350); }
+  finish();
+}
+
+function finish() {
+  STAGES.filter(s => !s.sim).forEach(s => shown[s.k] = S[s.k]);
+  ran = true; running = false; $("#run").disabled = false; $("#run").textContent = "Run again";
+  ltab = "clients"; renderTabs(); renderFunnel();
+  select((D.clients.find(c => ["Start", "Grow"].includes(c.plan) && c.opps[0]?.message?.trial && c.opps[0].value > 0 && c.captured.Renewals) || D.clients[0]).id);
+}
+
+// ---------- left ----------
+const topOpp = c => c.opps[0];
+function statusPill(c) {
+  const p = play[c.id];
+  if (p?.signed) return `<span class="pill navy">Signed</span>`;
+  if (p?.pipeline) return `<span class="pill navy">Sent by lead</span>`;
+  if (p?.state === "trial" || p?.state === "day12") return `<span class="pill blue">On trial</span>`;
+  if (p?.win) return `<span class="pill green">Adopted</span>`;
+  if (p?.state === "snoozed" || p?.state === "stopped") return `<span class="pill grey">Snoozed</span>`;
+  if (p?.state === "handover") return `<span class="pill amber">With a person</span>`;
+  if (!c.opps.length) return `<span class="pill grey">No action</span>`;
+  if (c.at_risk) return `<span class="pill red">At risk</span>`;
+  return c.route === "auto" ? `<span class="pill green">Zero-touch</span>` : `<span class="pill amber">For a person</span>`;
+}
+
+function renderTabs() { document.querySelectorAll("#ltabs button").forEach(b => b.classList.toggle("on", b.dataset.t === ltab)); }
+
+function renderLeft() {
+  const el = $("#lbody");
+  if (ltab === "log") {
+    el.innerHTML = `<div class="log">${logLines.map(l => `<div><span class="t">${l.t}</span> <b>${esc(l.who)}</b> ${esc(l.text)}</div>`).join("") || `<span class="muted">No run yet.</span>`}</div>`;
+    el.scrollTop = el.scrollHeight; return;
+  }
+  if (ltab === "insights") { el.innerHTML = insightsHTML(); bindCalc(); return; }
+  if (!ran) { el.innerHTML = `<div class="empty">No accounts scored yet.</div>`; return; }
+  const top = el.scrollTop;
+  const rows = D.clients.filter(c => filter === "all" || (filter === "auto" && c.route === "auto" && c.opps.length && !c.at_risk) ||
+    (filter === "human" && c.route === "human") || (filter === "risk" && c.at_risk));
+  const fb = (k, label) => `<button data-f="${k}" class="${filter === k ? "on" : ""}">${label}</button>`;
+  el.innerHTML = `<div class="filters">${fb("all", "All " + D.clients.length)}${fb("auto", "Zero-touch")}${fb("human", "For a person")}${fb("risk", "At risk")}</div>
+    <table><thead><tr><th>Account</th><th>Usage</th><th>Top signal</th><th style="text-align:right">€ a year</th><th>Status</th></tr></thead><tbody>` +
+    rows.map(c => {
+      const pct = c.limit ? c.steps[5] / c.limit : c.offices_live / c.offices, o = topOpp(c);
+      return `<tr class="row ${c.id === sel ? "sel" : ""}" data-n="${c.id}">
+        <td>${esc(c.name)}<div class="sub">${esc(c.town)} · ${c.plan}</div></td>
+        <td><div class="bar"><i class="${pct > 1 ? "over" : ""}" style="width:${Math.min(100, pct * 100)}%"></i></div><div class="sub">${c.limit ? Math.round(pct * 100) + "% of plan" : `${c.offices_live} of ${c.offices} offices`}</div></td>
+        <td>${o ? esc(o.title) : `<span class="muted">Healthy, nothing to do</span>`}</td>
+        <td class="num">${c.at_risk ? `<span style="color:var(--red)">${eur(c.at_risk)} at risk</span>` : c.potential ? "+" + eur(c.potential) : "–"}</td>
+        <td>${statusPill(c)}</td></tr>`;
+    }).join("") + `</tbody></table>`;
+  el.scrollTop = top;
+}
+
+function insightsHTML() {
+  const max = Math.max(S.potential_large, S.billed_agency);
+  const row = (label, v, cls) => `<span>${label}</span><div class="b ${cls}" style="width:${Math.max(2, v / max * 100)}%"></div><span>${keur(v)}</span>`;
+  return `<div class="cards">
+    <div class="card key"><h3>Where the money is: billed today against identified potential</h3>
+      <div class="twobar">${row("Agencies, billed", S.billed_agency, "")}${row("Agencies, potential", S.potential_agency, "pot")}
+        ${row("Large, billed", S.billed_large, "")}${row("Large, potential", S.potential_large, "pot")}</div>
+      <p class="small">Large accounts: potential is <b>${(S.potential_large / S.billed_large).toFixed(1)}x</b> what they pay (FRANK's brief says about 9x). Agencies: +${Math.round(S.potential_agency / S.billed_agency * 100)}% on today's billing, won with no human time.</p></div>
+    <div class="card"><h3>Plays the engine found</h3>
+      <table><thead><tr><th>Play</th><th style="text-align:right">Accounts</th><th style="text-align:right">€ a year</th><th>Who acts</th></tr></thead><tbody>
+      ${Object.entries(S.by_type).sort((a, b) => b[1].value - a[1].value).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v.n}</td><td class="num">${v.kind === "risk" ? eur(v.value) + " at risk" : v.value ? eur(v.value) : "adoption"}</td><td>${v.human ? (v.auto ? "Engine, person for the largest" : "Person, plan prepared") : "Engine"}</td></tr>`).join("")}</tbody></table></div>
+    <div class="card"><h3>Why it scales: account managers needed abroad</h3>
+      <p class="muted small">Inputs are assumptions you can change. The share needing a person comes from this run.</p>
+      <div class="eco">
+        <label>Clients after expansion</label><input id="c_n" type="number" value="1000">
+        <label>Accounts one manager handles by hand</label><input id="c_cap" type="number" value="40">
+        <label>Cost per manager per month (€)</label><input id="c_cost" type="number" value="4500">
+        <label>Accounts that need a person with the engine (%)</label><input id="c_share" type="number" value="${Math.round(S.human_clients / S.clients * 100)}">
+      </div>
+      <div class="eco-out"><div><span class="muted small">By hand</span><b id="o_h"></b><span class="small" id="o_hc"></span></div>
+        <div class="agent"><span class="muted small">With the engine</span><b id="o_e"></b><span class="small" id="o_ec"></span></div></div></div>
+    <div class="card"><h3>What is real in this demo</h3>
+      <p><b>Synthetic:</b> the 150 clients and their usage, generated to match FRANK's brief: about 140 owner-led agencies on the public price plans and about 10 large accounts billed €5,000 to €20,000 a year.</p>
+      <p><b>Real:</b> the price plans, and the engine itself: detection rules, sizing, peer comparison, messages and routing all run on the data. Point it at FRANK's usage export and it produces the same output for real clients.</p>
+      <p><b>Simulated:</b> the clients' answers, trials and signatures.</p>
+      <p class="muted small">Assumptions: uplift from each flow, €15 an hour for staff time, price per office for large accounts, extra-step prices for Start and Grow. The trial converts automatically, so the offer says so up front and the engine reminds the client on day 12.</p></div>
+  </div>`;
+}
+
+function bindCalc() {
+  const calc = () => {
+    const v = id => parseFloat($("#" + id).value) || 0;
+    const h = Math.ceil(v("c_n") / v("c_cap")), e = Math.ceil(v("c_n") * v("c_share") / 100 / v("c_cap"));
+    $("#o_h").textContent = h + " managers"; $("#o_e").textContent = e + " managers";
+    $("#o_hc").textContent = eur(h * v("c_cost")) + " a month"; $("#o_ec").textContent = eur(e * v("c_cost")) + " a month";
+  };
+  document.querySelectorAll(".eco input").forEach(i => i.oninput = calc); calc();
+}
+
+// ---------- detail ----------
+function select(id) { sel = id; dtab = "radar"; renderLeft(); renderDetail(); }
+const CUR = () => D.clients.find(c => c.id === sel);
+
+function renderDetail(keep) {
+  const c = CUR(), el = $("#detail"); if (!c) return;
+  const b0 = $(".right .body"), top = b0 ? b0.scrollTop : 0;
+  el.className = ""; el.style.cssText = "display:flex;flex-direction:column;min-height:0;flex:1";
+  const large = c.profile === "large";
+  const tab = (k, label) => `<button data-t="${k}" class="${dtab === k ? "on" : ""}">${label}</button>`;
+  el.innerHTML = `<div class="dhead"><h2>${esc(c.name)}</h2><div class="meta"><span>${esc(c.town)}</span>
+      <span>${large ? `Large broker · ${c.offices} offices` : `Owner-led agency · ${c.plan} plan`}</span><span>Health ${c.health}</span>${statusPill(c)}</div></div>
+    <nav class="tabs" id="dtabs">${tab("radar", "1 · Radar signals")}${tab("report", "2 · Value report")}${tab("play", large ? "3 · Expansion plan" : "3 · Nudge and convert")}</nav>
+    <div class="body"><div class="dbody">${dtab === "radar" ? radarHTML(c) : dtab === "report" ? reportHTML(c) : playHTML(c)}</div></div>`;
+  const b = $(".right .body");
+  if (keep) b.scrollTop = top; else if (dtab === "play" && play[c.id]?.answered) b.scrollTop = b.scrollHeight;
+}
+
+function radarHTML(c) {
+  const max = Math.max(...c.steps, c.limit || 0) * 1.08, large = c.profile === "large";
+  const kpi = (v, l) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  const feats = D.features.map(f => c.features[f] ? `<span>${f}</span>` : c.captured[f] ? `<span class="gap">${f}: ${c.captured[f]} done by hand</span>` : `<span class="off">${f}</span>`).join("");
+  return `<div class="kpis">${kpi(fmt(c.steps[5]), "steps in November")}${kpi(large ? `${c.offices_live} of ${c.offices}` : Math.round(c.steps[5] / c.limit * 100) + "%", large ? "offices live" : `of the ${fmt(c.limit)} in ${c.plan}`)}
+      ${kpi(`${c.active} of ${c.seats}`, "users active (30 days)")}${kpi(eur(c.billed), "billed a year")}</div>
+    <div class="cols"><div>
+      <h4>Steps per month${c.limit ? " against the plan limit" : ""}</h4>
+      <div class="spark">${c.limit ? `<div class="limit" style="bottom:${c.limit / max * 100}%"><span>plan limit ${fmt(c.limit)}</span></div>` : ""}
+        ${c.steps.map(s => `<div class="col"><i class="${c.limit && s > c.limit ? "over" : ""}" style="height:${s / max * 100}%" title="${fmt(s)}"></i></div>`).join("")}</div>
+      <div class="sparklabels">${D.months.map((m, i) => `<span>${m}<br>${fmt(c.steps[i])}</span>`).join("")}</div>
+      <h4 style="margin-top:14px">Flows in use</h4><div class="feat">${feats}</div>
+      <p class="muted small">Amber: requests FRANK saw in the inbox last month but did not execute, because the flow is off.${c.peer_steps ? ` Agencies on ${c.plan} run a median of ${fmt(c.peer_steps)} steps a month.` : ""}</p>
+    </div><div>
+      <h4>Signals, ranked by value</h4>
+      ${c.opps.map((o, i) => `<div class="opp ${i ? "" : "first"}"><div class="oh"><span>${esc(o.title)}</span><span>${o.kind === "risk" ? `<span style="color:var(--red)">${eur(o.value)} at risk</span>` : o.value ? "+" + eur(o.value) + " a year" : `<span class="muted">adoption</span>`}</span></div>
+        <ul>${o.evidence.map(e => `<li>${esc(e)}</li>`).join("")}</ul></div>`).join("") || `<p class="muted">No signals. This account gets its value report and nothing else.</p>`}
+    </div></div>`;
+}
+
+function reportHTML(c) {
+  const r = c.report;
+  return `<div class="cols"><div><div class="report">
+      <div class="rh">Your November with FRANK<span>Monthly value report for ${esc(c.name)} · sent to the owner automatically</span></div>
+      <div class="rb"><div class="big3"><div><b>${fmt(r.steps)}</b><span>tasks FRANK did for you</span></div><div><b>${fmt(r.hours)} h</b><span>of admin saved</span></div><div><b>${eur(r.value)}</b><span>of staff time</span></div></div>
+        <p>You pay about ${eur(r.price)} a month. For every €1, your team got back about <b>€${(r.value / r.price).toFixed(0)}</b> of time.</p>
+        <p>${c.active} of your ${c.seats} colleagues used FRANK this month.</p>
+        <div class="nextstep"><b>One thing to do next:</b> ${esc(r.next)}</div></div></div></div>
+    <div><h4>How the report is built</h4><ul class="plain">
+      <li>Hours saved use the agencies' own figure from FRANK's brief: about 10 hours per person per week, scaled by how much of the plan this team uses.</li>
+      <li>Staff time is valued at €15 an hour (assumption).</li>
+      <li>The next step is the top signal from the Usage Radar, so the report is the nudge.</li>
+      <li>Every account gets one, including healthy ones: it is the reason to keep paying.</li></ul></div></div>`;
+}
+
+// ---------- play (simulated client answers) ----------
+function P(c) { return play[c.id] ??= { state: "sent", msgs: [] }; }
+
+function playHTML(c) {
+  const o = topOpp(c);
+  if (!o) return `<p class="muted">Nothing to send beyond the value report. The engine leaves healthy accounts alone.</p>`;
+  if (c.profile === "large") return planHTML(c);
+  if (!o.message) return briefHTML(c, o);
+  const p = P(c), m = o.message;
+  const btn = (i, cls = "") => `<button class="${cls}" data-act="b${i}">${esc(m.buttons[i])}</button>`;
+  let bar = "";
+  if (p.state === "sent") bar = `<div class="quick">${btn(0, "go")}${m.buttons.slice(1).map((_, i) => btn(i + 1)).join("")}</div>`;
+  else if (p.state === "trial") bar = `<div class="quick"><button class="go" data-act="day12">Fast-forward to day 12</button></div>`;
+  else if (p.state === "day12") bar = `<div class="quick"><button class="go" data-act="keep">Keep it on</button><button data-act="stop">Stop the trial</button></div>`;
+  else if (p.state === "amend") bar = `<div class="quick"><button class="go" data-act="sign">Sign with one tap</button><button data-act="decline">Not now</button></div>`;
+  return `<div class="simnote">Simulation: you play the agency owner. ${o.route === "human" ? "This play is prepared for a person at FRANK." : "No person at FRANK is involved."}</div>
+    <div class="thread wa"><div class="msg sys">${esc(m.channel)}</div>
+      <div class="msg frank"><span class="from">FRANK</span>${esc(m.text)}</div>
+      ${p.msgs.map(x => x.block ? `<div class="block ${x.cls || ""}">${x.block}</div>` : x.who === "sys" ? `<div class="msg sys">${esc(x.text)}</div>` : `<div class="msg ${x.who}"><span class="from">${x.who === "frank" ? "FRANK" : esc(c.name) + " (you)"}</span>${esc(x.text)}</div>`).join("")}</div>
+    ${bar ? `<div class="replybar">${bar}</div>` : ""}`;
+}
+
+function amendment(c, o) {
+  const to = o.to ? D.plans[o.to] : null;
+  const line = o.type === "feature" ? `${o.feature} stays on. Its steps count towards ${c.plan}; steps above ${fmt(c.limit)} are billed at €${c.rate.toFixed(2)} each.` : `Plan changes from ${c.plan} (€${c.price} a month) to ${o.to} (€${to[0]} a month, ${fmt(to[1])} steps) from 1 December.`;
+  return `<h3>Contract amendment <span class="pill amber">simulated e-signature</span></h3><p>${esc(c.name)}: ${line}</p><p class="muted small">Generated by the engine from the price list. No person at FRANK reviewed it.</p>`;
+}
+
+function act(a) {
+  const c = CUR(), o = topOpp(c), p = P(c), m = o.message;
+  const you = t => p.msgs.push({ who: "prospect", text: t }), frank = t => p.msgs.push({ who: "frank", text: t }), sys = t => p.msgs.push({ who: "sys", text: t });
+  p.answered = true;
+  if (a === "b0") {
+    you(m.buttons[0]);
+    if (o.type === "feature") { p.state = "trial"; p.trial = true; frank(`Done. ${o.feature} is on from today, free for 14 days. I will pick up the next ${o.feature.toLowerCase().replace(/s$/, "")} request that reaches your inbox.`); sys("Trial started · day 0 of 14"); }
+    else if (o.type === "upgrade" || o.type === "fairprice") { p.state = "amend"; p.msgs.push({ block: amendment(c, o) }); }
+    else if (o.type === "seats") { p.state = "done"; p.win = true; frank(`Sent. ${c.seats - c.active} colleagues got the five-minute start guide with three tasks to try. I will tell you in two weeks who used it.`); sys("Adoption play completed · no person at FRANK involved"); }
+    else if (o.type === "churn") { p.state = "handover"; frank("Thank you. A person from our team will call you, and they will have your usage history in front of them."); sys("Handed to a person with the full account history · this is the engine's exception path"); }
+  } else if (a === "b1" && m.buttons.length === 3) {
+    you(m.buttons[1]);
+    if (o.type === "churn") { p.state = "done"; frank("Good to know. I will check again next month and leave you in peace until then."); sys("Logged: quiet month · recheck in 30 days"); }
+    else if (o.type === "feature") frank(`Three steps. 1) A ${o.feature.toLowerCase().replace(/s$/, "")} request reaches your inbox or WhatsApp. 2) I read it, collect what is missing and work through the insurer portals. 3) You get the result to approve. Nothing reaches your client until you press send.`);
+    else { const to = D.plans[o.to], over = Math.max(0, c.steps[5] - c.limit) * c.rate; frank(`September ${fmt(c.steps[3])}, October ${fmt(c.steps[4])}, November ${fmt(c.steps[5])} steps, against ${fmt(c.limit)} included. November cost you about €${fmt(c.price + over)} with extra steps. ${o.to} is €${to[0]} flat for up to ${fmt(to[1])} steps.`); }
+  } else if (a === "b2" || (a === "b1" && m.buttons.length === 2) || a === "decline") {
+    you(a === "decline" ? "Not now" : m.buttons[m.buttons.length - 1]);
+    if (o.type === "churn") { p.state = "handover"; frank("I am sorry to hear that. Before anything changes, a person from our team will call you today."); sys("Escalated to a person immediately · cancel intent"); }
+    else { p.state = "snoozed"; frank("No problem. I will not raise this again for 60 days."); sys("Snoozed for 60 days · reason logged for the learning loop"); }
+  } else if (a === "day12") {
+    const n = Math.max(3, Math.round((c.captured[o.feature] || c.steps[5] * .2) * 12 / 30));
+    p.state = "day12"; sys("Day 12 of 14");
+    frank(`Reminder: your ${o.feature} trial ends in 2 days. In 12 days I handled ${n} requests for you. It stays on after day 14 unless you tap Stop.`);
+  } else if (a === "keep") {
+    you("Keep it on"); sys("Day 14 · trial converted");
+    if (o.value > 0) { p.state = "amend"; p.msgs.push({ block: amendment(c, o) }); }
+    else { p.state = "done"; p.win = true; frank(`${o.feature} stays on. It fits inside your ${c.plan} plan, so nothing changes on your bill.`); sys("Adoption win · brings the next plan upgrade forward"); }
+  } else if (a === "stop") {
+    you("Stop the trial"); p.state = "stopped"; frank(`Stopped. ${o.feature} is off and nothing was charged. What got in the way? One word is enough.`); sys("Opt-out honoured · reason requested for the learning loop");
+  } else if (a === "sign") {
+    p.state = "signed"; p.signed = o.value;
+    p.msgs.push({ cls: "success", block: `<h3>Signed. People at FRANK involved: 0</h3><p>${o.value ? `+${eur(o.value)} a year` : "The client pays less and stays"} · from first signal to signature without a person.</p>` });
+  }
+  refresh();
+}
+
+function briefHTML(c, o) {
+  const p = P(c);
+  return `<div class="simnote">Prepared for a person: this account is too valuable for a fully automatic play.</div>
+    <div class="doc"><h3>${esc(o.title)}</h3><p class="muted">${esc(c.name)} · ${eur(o.value)} a year (estimate)</p>
+    <h4>Evidence</h4><ul class="plain">${o.evidence.map(e => `<li>${esc(e)}</li>`).join("")}</ul>
+    ${p.pipeline ? `<p class="pill navy">Approved and sent</p>` : `<div class="row2"><button class="primary" data-act="approve">Approve and send (account lead)</button></div>`}</div>`;
+}
+
+function planHTML(c) {
+  const d = c.plan_doc, p = P(c), total = d.opportunities.reduce((a, o) => a + o.value, 0);
+  return `<div class="simnote">Augment, not automate: the engine prepares the plan, the Engagement Lead decides. You play the Engagement Lead.</div>
+    <div class="doc"><h3>Expansion plan · ${esc(c.name)}</h3><p class="muted">Prepared by the engine from usage data · ${eur(c.billed)} billed today, ${eur(total)} identified</p>
+      <div class="cols"><div><h4>Situation</h4><ul class="plain">${d.situation.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+        <h4>Opportunities</h4><table><tbody>${d.opportunities.map(o => `<tr><td>${esc(o.title)}</td><td class="num">+${eur(o.value)}</td></tr>`).join("")}<tr><td><b>Total a year</b></td><td class="num"><b>+${eur(total)}</b></td></tr></tbody></table></div>
+      <div><h4>Suggested rollout order</h4><ul class="plain">${d.sequence.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+        <h4>Who to involve</h4><ul class="plain">${d.stakeholders.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div></div>
+      <h4>Draft email to the sponsor</h4><div class="quotefrom">${esc(d.email)}</div>
+      ${p.pipeline ? `<div class="block success" style="margin-top:12px"><h3>Approved and sent by the Engagement Lead</h3><p>+${eur(total)} a year in the pipeline. Time spent by the lead: one review instead of a day of preparation.</p></div>`
+        : `<div class="row2"><button class="primary" data-act="approve">Approve and send (Engagement Lead)</button></div>`}</div>`;
+}
+
+function approve() {
+  const c = CUR(), p = P(c);
+  p.answered = true; p.pipeline = c.profile === "large" ? c.plan_doc.opportunities.reduce((a, o) => a + o.value, 0) : topOpp(c).value;
+  refresh();
+}
+
+function refresh() { renderDetail(false); renderFunnel(); renderLeft(); }
+
+// ---------- events ----------
+document.addEventListener("click", e => {
+  const t = e.target;
+  if (t.closest("#ltabs button")) { ltab = t.dataset.t; renderTabs(); renderLeft(); }
+  else if (t.closest("#dtabs button")) { dtab = t.dataset.t; renderDetail(); }
+  else if (t.dataset.f) { filter = t.dataset.f; renderLeft(); }
+  else if (t.closest("tr.row")) select(t.closest("tr.row").dataset.n);
+  else if (t.dataset.act === "approve") approve();
+  else if (t.dataset.act) act(t.dataset.act);
+});
+$("#run").onclick = runEngine;
+$("#skip").onclick = () => { if (!running) { logLines = []; finish(); } };
+
+(async () => {
+  D = window.EMBED ? window.EMBED.data : await (await fetch("data.json")).json(); S = D.stats;
+  renderFunnel(); renderLeft();
+})();
+
+</script>
+</body>
+</html>
