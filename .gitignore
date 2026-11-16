@@ -1,4 +1,7 @@
 dist/
 node_modules/
 .vercel/
+.claude/
 .DS_Store
+.vercel
+.env*
