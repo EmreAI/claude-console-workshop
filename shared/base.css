@@ -1,55 +1,289 @@
-/* Shared styles for the whole page. Agree with the team before changing this file. */
+/* Shared styles for the whole page. Agree with the team before changing this file.
+   Palette taken from FRANK's own demo (section 8) so the page and the demos read as one. */
+:root {
+  --navy: #15153a;
+  --navy-2: #1f1f52;
+  --blue: #0b7fd4;
+  --blue-light: #7cc0f2;
+  --ground: #f2f6fa;
+  --surface: #ffffff;
+  --ink: #15153a;
+  --muted: #5d667a;
+  --line: #dbe3ec;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --font: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+html {
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font);
+  font-size: 1.0625rem;
   line-height: 1.6;
-  color: #1a1a1a;
-  background: #fafaf7;
+  color: var(--ink);
+  background: var(--ground);
+  -webkit-font-smoothing: antialiased;
+}
+img,
+video,
+iframe {
+  max-width: 100%;
 }
 img {
-  max-width: 100%;
   height: auto;
 }
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+a {
+  color: var(--blue);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  color: var(--navy);
+  font-weight: 700;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* ---------- Hero: the table of contents is the hero ---------- */
+.hero {
+  background: var(--navy);
+  color: #fff;
+  padding: 0 var(--gutter) clamp(3rem, 7vw, 6rem);
+}
+.hero a {
+  color: inherit;
+}
+.hero-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 2rem;
-  background: #fafaf7ee;
-  border-bottom: 1px solid #e5e5e0;
-}
-.site-header h1 {
-  margin: 0;
-  font-size: 1.25rem;
-}
-.site-header nav {
-  display: flex;
-  gap: 0.75rem;
-}
-.site-header a {
-  color: inherit;
-  text-decoration: none;
-  font-weight: 600;
-}
-.team-section {
-  max-width: 960px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 4rem 2rem;
-  border-bottom: 1px solid #e5e5e0;
-  scroll-margin-top: 4rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.14);
 }
+.wordmark {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.hero-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 999px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+.hero-link:hover {
+  background: #fff;
+  border-color: #fff;
+  color: var(--navy);
+}
+.hero-link:active {
+  transform: translateY(1px);
+}
+.hero-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(3rem, 9vw, 7rem) 0 clamp(2rem, 5vw, 3.5rem);
+}
+.hero h1 {
+  max-width: 17ch;
+  margin: 0;
+  font-size: clamp(2.4rem, 6.2vw, 5.5rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.hero-lead {
+  max-width: 46ch;
+  margin: 1.5rem 0 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  color: rgb(255 255 255 / 0.72);
+}
+
+.index {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgb(255 255 255 / 0.14);
+}
+.index-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.14);
+  animation: row-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 45ms + 150ms);
+}
+.index-num {
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--blue-light);
+}
+.index-title {
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-decoration: none;
+}
+a.index-title:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+.index-owner {
+  color: rgb(255 255 255 / 0.72);
+  text-align: right;
+}
+.index-row.is-add .index-title {
+  color: var(--blue-light);
+  font-weight: 500;
+}
+.index-row.is-add .index-owner {
+  font-size: 0.95rem;
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+}
+
+/* ---------- Team sections ---------- */
+.team-section {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(3.5rem, 8vw, 6.5rem) var(--gutter);
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 1rem;
+}
+.rail {
+  position: sticky;
+  top: 1.5rem;
+  align-self: start;
+  display: grid;
+  gap: 0.25rem;
+}
+.rail-num {
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--blue);
+  font-variant-numeric: tabular-nums;
+}
+.rail-owner {
+  color: var(--muted);
+  font-weight: 500;
+}
+.section-body > :first-child {
+  margin-top: 0;
+}
+.section-body h2 {
+  max-width: 22ch;
+  margin: 0 0 1.25rem;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.section-body h3 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+}
+.section-body p,
+.section-body li {
+  max-width: 68ch;
+}
+
+
+/* ---------- Footer ---------- */
 .site-footer {
-  padding: 2rem;
-  text-align: center;
-  color: #777;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem var(--gutter) 4rem;
+  color: var(--muted);
+}
+.site-footer p {
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 760px) {
+  .index-row {
+    grid-template-columns: 2.75rem 1fr;
+  }
+  .index-owner {
+    grid-column: 2;
+    text-align: left;
+  }
+  .team-section {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .rail {
+    position: static;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .rail-num {
+    font-size: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .index-row {
+    animation: none;
+  }
+  .hero-link {
+    transition: none;
+  }
 }

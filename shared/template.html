@@ -3,7 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Claude Console Workshop</title>
+    <title>FRANK × Nova SBE challenge: our team's answer</title>
+    <meta name="description" content="Each section is one team member's part of our answer to the FRANK × Nova SBE challenge, built in the Claude Console workshop." />
+    <meta name="theme-color" content="#15153a" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet" />
     <style>
 {{SHARED_CSS}}
     </style>
@@ -12,15 +17,33 @@
     </style>
   </head>
   <body>
-    <header class="site-header">
-      <h1>Claude Console Workshop</h1>
-      <nav>
-      {{NAV}}
-      </nav>
+    <a class="skip-link" href="#sections">Skip to the sections</a>
+
+    <header class="hero">
+      <div class="hero-bar">
+        <span class="wordmark">FRANK × Nova SBE</span>
+        <a class="hero-link" href="{{REPO}}">Add your section on GitHub</a>
+      </div>
+
+      <div class="hero-main">
+        <h1>Our answer to the FRANK challenge, one section per team member.</h1>
+        <p class="hero-lead">
+          Each part below is built by one of us with Claude. Jump to a section, or add yours.
+        </p>
+      </div>
+
+      <ol class="index" aria-label="Sections">
+{{INDEX}}
+      </ol>
     </header>
-    <main>
+
+    <main id="sections">
 {{SECTIONS}}
     </main>
-    <footer class="site-footer">Built together by the team.</footer>
+
+    <footer class="site-footer">
+      <p>Built by the team in the Claude Console workshop. Every merged pull request goes live here.</p>
+      <a href="{{REPO}}">Source on GitHub</a>
+    </footer>
   </body>
 </html>
