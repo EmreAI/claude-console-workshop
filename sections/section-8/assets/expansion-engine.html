@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FRANK · Expansion Engine</title>
+<title>FRANK Expansion Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --navy: #15153a; --blue: #0b7fd4; --blue-soft: #e3f1fc; --bg: #f2f6fa; --card: #fff;
@@ -188,14 +191,130 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: now
 .twobar .b.pot { background: var(--blue); }
 @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
 
+/* ---- Product polish layer (ui-ux-pro-max pass): type, app bar, labels, states ---- */
+body { font-family: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 14px; }
+.top { background: var(--navy); color: #fff; border-bottom: 0; padding: 10px 20px; gap: 18px; }
+.brand { color: #fff; text-decoration: none; font-size: 21px; letter-spacing: .01em; padding-right: 18px; border-right: 1px solid rgb(255 255 255 / .16); }
+.brand span { color: var(--blue); }
+.title h1 { font-size: 17px; font-weight: 700; letter-spacing: -.01em; color: #fff; }
+.title p { color: rgb(255 255 255 / .68); font-size: 12.5px; }
+.top .pill.amber { background: rgb(251 239 213 / .14); color: #f5cf86; }
+.top .ghost { color: #fff; border-color: rgb(255 255 255 / .3); }
+.top .ghost:hover { background: #fff; color: var(--navy); border-color: #fff; }
+.top .primary { background: var(--blue); }
+.top .primary:hover { background: #0a6fbb; }
+button, .primary, .ghost, .tabs button, .filters button, .quick button, tr.row { transition: background-color .15s, color .15s, border-color .15s, box-shadow .15s, opacity .2s; }
+.primary, .ghost { min-height: 38px; border-radius: 8px; }
+button:focus-visible, a:focus-visible, input:focus-visible, tr.row:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.funnel { gap: 8px; padding: 14px 20px; }
+.stage { border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 2px rgb(21 21 58 / .04); }
+.stage .who { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+.stage .n { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.stage .what { font-size: 12px; }
+.divider { font-size: 11px; letter-spacing: .02em; text-transform: none; }
+.panel { border-radius: 12px; box-shadow: 0 1px 2px rgb(21 21 58 / .04), 0 8px 24px -12px rgb(21 21 58 / .12); }
+.tabs button { padding: 12px 12px; }
+.tabs button:hover { color: var(--navy); }
+th { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+td { padding: 9px 10px; }
+td:first-child { white-space: nowrap; font-weight: 600; }
+td:first-child .sub { font-weight: 400; }
+td .sub { font-size: 12px; }
+.filters button { font-size: 12.5px; padding: 5px 12px; }
+.filters button:hover { border-color: var(--navy); color: var(--navy); }
+.filters button.on:hover { color: #fff; }
+h4 { font-size: 12.5px; letter-spacing: 0; text-transform: none; font-weight: 700; color: var(--navy); }
+.kpi { border-radius: 8px; padding: 10px 12px; }
+.kpi b { font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+.kpi span, .sparklabels, .spark .limit span { font-size: 12px; }
+.pill { font-size: 12px; }
+.opp, .card, .doc, .report { border-radius: 10px; }
+.dhead h2 { font-size: 20px; letter-spacing: -.015em; }
+.empty { font-size: 15px; }
+/* Schibsted's tabular figures space out commas; proportional figures read cleanly */
+*, *::before, *::after { font-variant-numeric: proportional-nums !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* ---- Dark product theme: deep navy canvas, glowing blue and cyan data ---- */
+:root {
+  --bg: #0a0b22; --card: #121338; --card-2: #191b47; --text: #e9ecf7; --muted: #9ba4c0; --line: #252957;
+  --navy: #e9ecf7; --blue: #3b9eff; --cyan: #34d6ff; --blue-soft: rgb(59 158 255 / .15);
+  --green: #4ade80; --green-soft: rgb(74 222 128 / .13); --amber: #fbbf5a; --amber-soft: rgb(251 191 90 / .13);
+  --red: #ff7b72; --red-soft: rgb(255 123 114 / .13); --grey-soft: rgb(255 255 255 / .06);
+  color-scheme: dark;
+}
+body {
+  background:
+    radial-gradient(900px 420px at 12% -8%, rgb(59 158 255 / .16), transparent 60%),
+    radial-gradient(800px 380px at 92% -10%, rgb(52 214 255 / .10), transparent 60%),
+    var(--bg);
+}
+.top { background: rgb(10 11 34 / .7); border-bottom: 1px solid var(--line); backdrop-filter: blur(10px); }
+.brand { color: var(--text); border-right-color: var(--line); }
+.top .primary, .primary { background: linear-gradient(135deg, #3b9eff, #2b7de0); color: #fff; box-shadow: 0 6px 20px -6px rgb(59 158 255 / .7); }
+.top .primary:hover, .primary:hover { background: linear-gradient(135deg, #5aaeff, #3b8cf0); }
+.top .ghost, .ghost { color: var(--text); border-color: var(--line); background: rgb(255 255 255 / .03); }
+.top .ghost:hover, .ghost:hover { background: rgb(255 255 255 / .08); color: #fff; border-color: #3a3f7a; }
+.top .pill.amber { background: var(--amber-soft); color: var(--amber); }
+.stage, .panel, .card, .opp, .doc, .report, .email, .block {
+  background: linear-gradient(180deg, var(--card-2), var(--card));
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .04), 0 12px 32px -18px rgb(0 0 0 / .8);
+}
+.stage { border-top: 2px solid var(--line); }
+.stage.done, .stage.active { border-top-color: var(--cyan); }
+.stage.active { box-shadow: 0 0 0 1px var(--cyan), 0 0 28px -6px rgb(52 214 255 / .55); }
+.stage.sim.done { border-top-color: var(--green); }
+.stage .who { color: var(--cyan); }
+.stage.sim .who { color: var(--green); }
+.stage .n { color: #fff; }
+.tabs { border-bottom-color: var(--line); }
+.tabs button.on { color: #fff; border-bottom-color: var(--cyan); }
+.tabs button:hover { color: #fff; }
+th { background: var(--card); color: var(--muted); border-bottom-color: var(--line); }
+td { border-bottom-color: rgb(255 255 255 / .05); }
+tr.row:hover { background: rgb(255 255 255 / .03); }
+tr.row.sel { background: var(--blue-soft); box-shadow: inset 2px 0 0 var(--cyan); }
+.log div, ul.plain li { border-bottom-color: rgb(255 255 255 / .06); }
+.log b { color: var(--cyan); }
+.kpi, .eco-out div, .email .hd, .quotefrom, .msg.frank { background: var(--card-2); border: 1px solid var(--line); }
+.kpi b, .dhead h2, .big, .report .big3 b, .card h3 { color: #fff; }
+.eco-out .agent { background: var(--blue-soft); }
+.eco input, .row2 input[type=number], .inputrow input { background: var(--card-2); color: var(--text); border-color: var(--line); }
+.filters button, .quick button { background: transparent; color: var(--muted); border-color: var(--line); }
+.filters button:hover, .quick button:hover { color: #fff; border-color: #3a3f7a; background: rgb(255 255 255 / .05); }
+.filters button.on, .filters button.on:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
+.quick button { color: var(--blue); border-color: rgb(59 158 255 / .5); }
+.quick button.go { background: var(--blue); color: #fff; }
+.replybar { background: linear-gradient(transparent, var(--card) 18%); }
+.msg.prospect { background: var(--blue); color: #fff; }
+.wa .msg.frank { background: var(--green-soft); }
+.pill.blue { color: #8cc8ff; }
+.pill.navy { background: var(--blue); color: #fff; }
+.report .rh { background: linear-gradient(135deg, #1d3f8f, #14205a); }
+.report .big3 div { background: var(--blue-soft); }
+.report .big3 span { color: #8cc8ff; }
+.bar { background: rgb(255 255 255 / .08); }
+.bar i { background: linear-gradient(90deg, var(--blue), var(--cyan)); box-shadow: 0 0 10px rgb(52 214 255 / .5); }
+.spark { border-bottom-color: var(--line); }
+.spark .col i { background: linear-gradient(180deg, var(--cyan), var(--blue) 70%, rgb(59 158 255 / .55)); box-shadow: 0 0 18px -4px rgb(52 214 255 / .55); }
+.spark .col i.over, .bar i.over { background: linear-gradient(180deg, #ffd27a, var(--amber)); box-shadow: 0 0 16px -4px rgb(251 191 90 / .6); }
+.spark .limit span { background: var(--card); }
+.twobar .b { background: rgb(255 255 255 / .25); }
+.twobar .b.pot { background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+.feat span.off { color: var(--muted); }
+h4 { color: var(--text); }
+.empty { color: var(--muted); }
+a { color: #8cc8ff; }
+::-webkit-scrollbar { width: 10px; height: 10px; } ::-webkit-scrollbar-thumb { background: #2a2e63; border-radius: 10px; border: 2px solid var(--card); } ::-webkit-scrollbar-track { background: transparent; }
 </style>
 </head>
 <body>
 <header class="top">
-  <div class="brand">FRANK<span>.</span></div>
+  <a class="brand" href="/" title="Back to the product page">FRANK<span>.</span></a>
   <div class="title">
-    <h1>Expansion Engine: from <em>signal</em> to <em>signed upgrade</em> on data FRANK already has</h1>
-    <p>Synthetic client base shaped like FRANK's brief (150 paying clients, coded not named). Client responses on the right are a simulation you play live.</p>
+    <h1>Expansion Engine</h1>
+    <p>150 paying clients, generated to match FRANK's brief. Client replies are simulated live.</p>
   </div>
   <div class="actions">
     <span class="pill amber">synthetic data</span>

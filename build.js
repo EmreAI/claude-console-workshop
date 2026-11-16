@@ -11,7 +11,6 @@ const outDir = path.join(root, "dist");
 const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "");
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const text = (html) => html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-const pad = (n) => String(n).padStart(2, "0");
 
 const sections = fs
   .readdirSync(sectionsDir, { withFileTypes: true })
@@ -34,34 +33,29 @@ const sections = fs
   // Skip anything still holding the template's starter text
   .filter((s) => s.html.trim() && !/Your section title|\(your name\)/i.test(s.html));
 
-const claimed = sections;
 const addUrl = `${REPO}/tree/main/sections/_template`;
 
-const index =
+// Top nav: one link per team section, by its title
+const nav = sections.map((s) => `<a href="#${s.name}">${esc(s.title)}</a>`).join("\n          ");
+
+// Team list for the closing section, one row per owner
+const team =
   sections
-    .map(
-      (s, i) => `<li class="index-row" style="--i:${i}">
-          <span class="index-num">${pad(i + 1)}</span>
-          <a class="index-title" href="#${s.name}">${esc(s.title)}</a>
-          <span class="index-owner">${esc(s.owner)}</span>
-        </li>`
-    )
+    .filter((s) => s.owner)
+    .map((s) => `<li><span class="team-name">${esc(s.owner)}</span><a href="#${s.name}">${esc(s.title)}</a></li>`)
     .join("\n") +
-  `\n<li class="index-row is-add" style="--i:${sections.length}">
-          <span class="index-num">${pad(sections.length + 1)}</span>
-          <a class="index-title" href="${addUrl}">Add your section</a>
-          <span class="index-owner">Copy the template folder on GitHub</span>
-        </li>`;
+  `\n<li class="team-add"><span class="team-name">You?</span><a href="${addUrl}">Add your part to this page</a></li>`;
+
+// FRANK's client base from the brief: about 140 owner-led agencies, about 10 large broker groups
+const dots =
+  '<span class="dot"></span>'.repeat(140) + '<span class="dot is-large"></span>'.repeat(10);
 
 const body = sections
   .map(
-    (s, i) => `<section id="${s.name}" class="team-section">
-  <aside class="rail" aria-hidden="true">
-    <span class="rail-num">${pad(i + 1)}</span>
-    <span class="rail-owner">${esc(s.owner)}</span>
-  </aside>
-  <div class="section-body">
+    (s) => `<section id="${s.name}" class="team-section">
+  <div class="wrap section-body">
 ${s.html}
+  ${s.owner ? `<p class="byline">Built by ${esc(s.owner)}</p>` : ""}
   </div>
 </section>`
   )
@@ -74,11 +68,12 @@ const template = read(path.join(root, "shared", "template.html"));
 const page = template
   .replace("{{SHARED_CSS}}", () => read(path.join(root, "shared", "base.css")))
   .replace("{{SECTION_CSS}}", () => styles)
-  .replace("{{INDEX}}", () => index)
+  .replace("{{NAV}}", () => nav)
+  .replace("{{TEAM}}", () => team)
+  .replace("{{DOTS}}", () => dots)
   .replace("{{SECTIONS}}", () => body)
   .replace(/{{REPO}}/g, () => REPO)
-  .replace(/{{CLAIMED}}/g, () => String(claimed.length))
-  .replace(/{{TOTAL}}/g, () => String(sections.length));
+  .replace(/{{FIRST}}/g, () => (sections[0] ? sections[0].name : "team"));
 
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
@@ -92,8 +87,20 @@ for (const s of sections) {
   }
 }
 
-console.log(
-  `Built dist/index.html: ${claimed.length} of ${sections.length} sections claimed (${claimed
-    .map((s) => s.name)
-    .join(", ") || "none"})`
-);
+// Each part of the product gets its own clean URL (the links for the hand-in slide)
+const APPS = {
+  demo: "section-8/assets/expansion-engine.html", // /demo  — the Expansion Engine
+  radar: "section-9/assets/radar.html", // /radar — the FRANK Radar map
+};
+for (const [route, file] of Object.entries(APPS)) {
+  const src = path.join(sectionsDir, file);
+  if (!fs.existsSync(src)) continue;
+  fs.mkdirSync(path.join(outDir, route), { recursive: true });
+  fs.copyFileSync(src, path.join(outDir, route, "index.html"));
+}
+
+// Shared images (hero screenshot etc.)
+const sharedAssets = path.join(root, "shared", "assets");
+if (fs.existsSync(sharedAssets)) fs.cpSync(sharedAssets, path.join(outDir, "assets"), { recursive: true });
+
+console.log(`Built dist/index.html with ${sections.length} team section(s): ${sections.map((s) => s.name).join(", ")}`);
